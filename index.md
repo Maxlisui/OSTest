@@ -1,37 +1,33 @@
-## Welcome to GitHub Pages
 
-You can use the [editor on GitHub](https://github.com/xerox102/OSTest/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
+# Processes
+**[Fork](https://linux.die.net/man/3/fork)**
+Library: unistd.h
+Syntax: fork();
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Returns 0 if the process is the child process
+Returns the PID of the child if the process is the parent
 
-### Markdown
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+**[Wait](https://linux.die.net/man/3/wait)**
+Library: sys/wait.h
+Syntax: wait(NULL);
 
-```markdown
-Syntax highlighted code block
+With argument NULL, waits for all child processes to exit.
 
-# Header 1
-## Header 2
-### Header 3
+**[Exit](https://linux.die.net/man/3/exit)**
+Library: stdlib.h
+Syntax: exit(0);
+causes normal process termination. (Parent will receive SIGCHLD Signal)
 
-- Bulleted
-- List
+**[Defining Handlers](http://man7.org/linux/man-pages/man2/sigaction.2.html)**
+Library: signal.h
 
-1. Numbered
-2. List
+    struct sigaction act;
+    act.sa_handler=handler;
+    sigaction(SIGCHLD, &act, NULL);
 
-**Bold** and _Italic_ and `Code` text
+`SIGCHLD` is, in this example, the signal to look out for
+`handler` is a method of signature `void handler(int signal)` which is called when the signal is received.
 
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/xerox102/OSTest/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+See exercise 3, A2 or A3, for concrete implementation.
+[List of Signals](http://man7.org/linux/man-pages/man7/signal.7.html)

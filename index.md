@@ -1,36 +1,51 @@
 
 # Processes
-**[Fork](https://linux.die.net/man/3/fork)**  
-Library: unistd.h  
+**[Fork](https://linux.die.net/man/3/fork)**
+Library: unistd.h
 Syntax: fork();
 
-Returns 0 if the process is the child process  
+Returns 0 if the process is the child process
 Returns the PID of the child if the process is the parent
 
 
-**[Wait](https://linux.die.net/man/3/wait)**  
-Library: sys/wait.h  
-Syntax: wait(NULL);  
+**[Wait](https://linux.die.net/man/3/wait)**
+Library: sys/wait.h
+Syntax: wait(NULL);
 
-With argument NULL, waits for all child processes to exit.  
+With argument NULL, waits for all child processes to exit.
 
 **[Exit](https://linux.die.net/man/3/exit)**  
 Library: stdlib.h  
 Syntax: exit(0);  
-causes normal process termination. (Parent will receive SIGCHLD Signal)  
 
-**[Defining Handlers](http://man7.org/linux/man-pages/man2/sigaction.2.html)**  
-Library: signal.h  
+causes normal process termination. (Parent will receive SIGCHLD Signal)
+
+**[Defining Handlers](http://man7.org/linux/man-pages/man2/sigaction.2.html)**
+Library: signal.h
 
     struct sigaction act;
     act.sa_handler=handler;
     sigaction(SIGCHLD, &act, NULL);
 
-`SIGCHLD` is, in this example, the signal to look out for  
-`handler` is a method of signature `void handler(int signal)` which is called when the signal is received.  
+`SIGCHLD` is, in this example, the signal to look out for
+`handler` is a method of signature `void handler(int signal)` which is called when the signal is received.
 
-See exercise 3, A2 or A3, for concrete implementation.  
+See Exercise 3, A2 or A3, for concrete implementation.
 [List of Signals](http://man7.org/linux/man-pages/man7/signal.7.html)  
+
+**[Execv](https://linux.die.net/man/3/execv)**  
+Library: unistd.h  
+Is passed a NULL-terminated array where the first entry is the name of the program to be executed, and any following array entries before NULL are the parameters.
+
+    char *args[2];
+    args[0] = "/bin/grep";
+    args[1] = argv[1];
+    args[2] = NULL;
+    
+    //call grep
+    execv(args[0], args);
+
+See Exercise 4, A2 for implementation.
 
 # IPC
 ## [Pipes](https://linux.die.net/man/3/pipe)
@@ -115,3 +130,196 @@ To read a message from the queue:
             message_buf rbuf;
             msgrcv(msqid, &rbuf, MessageSize, 1, 0);
 Text of the message is in `rbuf.mtext`
+
+## Shared Memory Segment
+### System V
+Libraries: sys/types.h, sys/ipc.h, sys/shm.h  
+See Ex. 5 - A1 for implementation.  
+
+Create Shared Memory Segment:  
+
+    int shmid = shmget(ftok("keyfile", SHMKEY), SHMSZ, IPC_CREAT | 0666);
+
+Attach Shared Memory Segment to variable:
+
+    //Shared Memory Int
+    int *shm;
+    //attach shared memory segment to variable shm
+    shm = shmat(shmid, NULL, 0);
+
+Get existing Shared Memory Segment ID (Attach the same way):  
+
+    int shmid = shmget(ftok("keyfile", SHMKEY), SHMSZ, 0666);
+### POSIX
+Libraries: sys/mman.h, sys/stat.h, fnctl.h **and** linked with -lrt
+Create Shared Memory Segment  
+
+    int shmid = shm_open("posixshared", O_CREAT | O_RDWR, 0666);
+    ftruncate(shmid, SHMSZ);
+Open existing Shared Memory Segment  
+
+    int shmid = shm_open("posixshared", O_RDWR, 0666);
+    ftruncate(shmid, SHMSZ);
+
+Attach Shared Memory Segment (Here to int * shm)
+
+     int * shm = mmap(0, SHMSZ, PROT_WRITE, MAP_SHARED, shmid, 0);
+    
+## Semaphores
+### System V
+Libraries: sys/types.h, sys/ipc.h, sys/sem.h  
+See Ex. 5 - A2 for implementation.  
+
+This union **needs to be defined by the calling program!**
+
+    union semun
+    {
+        int val;
+        struct semid_ds *buf;
+        unsigned short *array;
+        struct seminfo *__buf;
+    };
+
+Create Semaphore: 
+
+    int semid = semget(ftok("keyfile", SEMKEY), 1, IPC_CREAT | 0666);
+
+Initialize Semaphore:  
+
+    
+        //Set value to 1
+        union semun arg;
+        arg.val = 1;
+        semctl(semid, 0, SETVAL, arg);
+
+Increasing/Decreasing Semaphores:   
+See A2-common Ex. 5
+
+Close Semaphore (Only on one process)
+
+    //remove semaphore
+    semctl(semid, 0, IPC_RMID, arg);
+Getting an existing Semaphore (Increasing / Decreasing the same way):  
+
+    semid = semget(ftok("keyfile", SEMKEY), 1, 0666);
+
+### POSIX 
+Libraries: semaphore.h **and** linked with -pthread  
+
+Creating and initializing semaphore:  
+
+    sem_t sema;
+    sem_init(&sema, 1, 1);
+Increasing and decreasing semaphore:  
+
+     sem_wait(&sema); //Decrease Semaphore
+     sem_post(&sema); //Increase Semaphore
+
+## POSIX Threads
+Libraries: pthread.h **and** linked with pthread  
+
+[**Creating a thread**](https://linux.die.net/man/3/pthread_create)  
+
+    pthread_create(pthread_t * thread, NULL, *thread_func, void * arg)
+**Killing a thread**  
+
+    pthread_cancel(pthread_t * thread);
+**Joining a thread**  
+
+    pthread_join(pthread_t * thread, NULL);
+**Cleanup Methods**
+Adding a cleanup method to the stack
+
+    pthread_cleanup_push(*cleanup_method, void * arg);
+Manually popping the stack (end of method)
+
+    pthread_cleanup_pop(1);
+If thread is cancelled, all methods on the stack are executed automatically
+
+## Mutexes
+Libraries: pthread.h **and** link with pthread  
+
+Initialize Mutex statically
+
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+or dynamically
+
+    pthread_mutex_init(&mutex)
+Lock Mutex
+
+    pthread_mutex_lock(&mutex);
+Unlock Mutex
+
+    pthread_mutex_unlock(&mutex);
+
+## Spinlock
+Libraries: pthread.h **and** link with pthread  
+
+[Initialize Spinlock](https://linux.die.net/man/3/pthread_spin_init) - only dynamically:
+
+    pthread_spinlock_t spinlock;
+    pthread_spin_init(&spinlock, PTHREAD_PROCESS_PRIVATE);
+Lock Spinlock
+
+    pthread_spin_lock(&spinlock);
+
+Unlock Spinlock
+
+    pthread_spin_unlock(&spinlock);
+
+## Condition Variables
+Libraries: pthread.h **and** link with pthread  
+Initialize statically
+
+    pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
+
+Initialize dynamically
+
+    pthread_cond_t cv;
+    pthread_cond_init(&cv, NULL);
+Signal Variable
+
+    pthread_cond_signal(&cv);
+Broadcasting Variable
+
+    pthread_cond_broadcast(&cv);
+
+Wait for Variable
+
+    pthread_cond_wait(&cv, &mutex);
+
+Rules for using condition variables:  
+
+ - Should always be used together with a mutex
+ - A thread must have the mutex before calling cond_wait
+ - Calling cond_wait unlocks the mutex for other threads to use
+ - Upon receiving cond_signal the thread will try to get the mutex back
+ - (Ideally) the thread calling cond_wait should have the mutex before calling it so that unlocking the mutex will allow the signaled thread to pick it up
+ - cond_signal sends a signal to a random blocked thread
+ - cond_broadcast sends a signal to all blocked threads
+ - signal and broadcast **are NOT persistent**, if no thread picks up the signal at the time, the signal is **lost**.
+
+## Atomic Variables
+Defining atomic Variables in C11
+```
+_Atomic int global = 0;
+global++;
+```
+Atomic add procedures
+
+    atomic_fetch_add_explicit(&x, 1, memory_order_relaxed);
+
+## Example Makefile
+
+    CFLAGS = -std=gnu11 -Wall -Werror -Wextra
+    
+    .PHONY: all clean
+    
+    all: program1 program2 program3
+    
+    clean:
+    	$(RM) program1 program2 program3
+    
+    program1: program1.c -lpthread
+    program2: program2.c -lpthread
+    program3: program3.c -lpthread

@@ -20,22 +20,22 @@ Syntax: exit(0);
 
 causes normal process termination. (Parent will receive SIGCHLD Signal)
 
-**[Defining Handlers](http://man7.org/linux/man-pages/man2/sigaction.2.html)**
+**[Defining Handlers](http://man7.org/linux/man-pages/man2/sigaction.2.html)**  
 Library: signal.h
 
     struct sigaction act;
     act.sa_handler=handler;
     sigaction(SIGCHLD, &act, NULL);
 
-`SIGCHLD` is, in this example, the signal to look out for
-`handler` is a method of signature `void handler(int signal)` which is called when the signal is received.
+`SIGCHLD` is, in this example, the signal to look out for  
+`handler` is a method of signature `void handler(int signal)` which is called when the signal is received.  
 
-See Exercise 3, A2 or A3, for concrete implementation.
+See Exercise 3, A2 or A3, for concrete implementation.  
 [List of Signals](http://man7.org/linux/man-pages/man7/signal.7.html)  
 
 **[Execv](https://linux.die.net/man/3/execv)**  
 Library: unistd.h  
-Is passed a NULL-terminated array where the first entry is the name of the program to be executed, and any following array entries before NULL are the parameters.
+Is passed a NULL-terminated array where the first entry is the name of the program to be executed, and any following array entries before NULL are the parameters.  
 
     char *args[2];
     args[0] = "/bin/grep";
@@ -45,7 +45,7 @@ Is passed a NULL-terminated array where the first entry is the name of the progr
     //call grep
     execv(args[0], args);
 
-See Exercise 4, A2 for implementation.
+See Exercise 4, A2 for implementation.  
 
 # IPC
 ## [Pipes](https://linux.die.net/man/3/pipe)
@@ -53,10 +53,12 @@ Library: unistd.h
 Create integer array of size [2]  
 
     int filedes[2];
+
 Create pipe, THEN fork process - both processes have access to the filedes[] pipe object.
 
     pipe(filedes);
     fork();
+
 One end should be closed in each process(0 is reading end, 1 is writing end) 
 
     close(filedes[0]); //closes reading end
@@ -71,6 +73,7 @@ With dup
     //Reroute pipe read to stdin
      close(STDIN_FILENO);
      dup(filedes[0]);
+
 Implementation see Exercise 4, A2
 
 ## [FIFO Pipes](https://www.geeksforgeeks.org/named-pipe-fifo-example-c-program/)
@@ -83,7 +86,7 @@ Library: sys/types.h **and** sys/stat.h, stdio.h for fopen/fclose
 Files take string reading operations ([fprintf](https://linux.die.net/man/3/fprintf), [fscanf](https://linux.die.net/man/3/fscanf), [fgets](https://linux.die.net/man/3/fgets), [fputs](https://linux.die.net/man/3/fputs), ...)  and binary reading operations ([fwrite](https://linux.die.net/man/3/fwrite), [fread](https://linux.die.net/man/3/fread)).  
 
 ### [File Monitoring](https://linux.die.net/man/3/fd_set)
-See Exercise 4, A1 for implementation example.
+See Exercise 4, A1 for implementation example.  
 Get Filedescriptor of type int by calling `fileno(FILE * fp)`  
 Create file set of type `fd_set`, and timeout var of type `struct timeval`  
 
@@ -115,6 +118,7 @@ Create a message_buf struct and set `sbuf.mtype = 1;` and `sbuf.mtext` to the st
 Sending the Message
 
     msgsnd(msqid, &sbuf, strlen(sbuf.mtext) + 1, IPC_NOWAIT);
+    
 To load a message queue:  
 
     int msqid = msgget(ftokkey, 0666);
@@ -123,12 +127,14 @@ To check a message queue:
 Create `struct msqid_ds buf;`  
 
         msgctl(msqid, IPC_STAT, &buf);
+        
 `buf.msg_qnum` holds the number of messages available.  
 
 To read a message from the queue:
 
             message_buf rbuf;
             msgrcv(msqid, &rbuf, MessageSize, 1, 0);
+            
 Text of the message is in `rbuf.mtext`
 
 ## Shared Memory Segment
@@ -157,6 +163,7 @@ Create Shared Memory Segment
 
     int shmid = shm_open("posixshared", O_CREAT | O_RDWR, 0666);
     ftruncate(shmid, SHMSZ);
+    
 Open existing Shared Memory Segment  
 
     int shmid = shm_open("posixshared", O_RDWR, 0666);
@@ -200,6 +207,7 @@ Close Semaphore (Only on one process)
 
     //remove semaphore
     semctl(semid, 0, IPC_RMID, arg);
+    
 Getting an existing Semaphore (Increasing / Decreasing the same way):  
 
     semid = semget(ftok("keyfile", SEMKEY), 1, 0666);
@@ -222,19 +230,24 @@ Libraries: pthread.h **and** linked with pthread
 [**Creating a thread**](https://linux.die.net/man/3/pthread_create)  
 
     pthread_create(pthread_t * thread, NULL, *thread_func, void * arg)
+    
 **Killing a thread**  
 
     pthread_cancel(pthread_t * thread);
+    
 **Joining a thread**  
 
     pthread_join(pthread_t * thread, NULL);
+    
 **Cleanup Methods**
 Adding a cleanup method to the stack
 
     pthread_cleanup_push(*cleanup_method, void * arg);
+    
 Manually popping the stack (end of method)
 
     pthread_cleanup_pop(1);
+    
 If thread is cancelled, all methods on the stack are executed automatically
 
 ## Mutexes
@@ -243,12 +256,15 @@ Libraries: pthread.h **and** link with pthread
 Initialize Mutex statically
 
     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    
 or dynamically
 
     pthread_mutex_init(&mutex)
+    
 Lock Mutex
 
     pthread_mutex_lock(&mutex);
+    
 Unlock Mutex
 
     pthread_mutex_unlock(&mutex);
@@ -260,6 +276,7 @@ Libraries: pthread.h **and** link with pthread
 
     pthread_spinlock_t spinlock;
     pthread_spin_init(&spinlock, PTHREAD_PROCESS_PRIVATE);
+    
 Lock Spinlock
 
     pthread_spin_lock(&spinlock);
@@ -278,9 +295,11 @@ Initialize dynamically
 
     pthread_cond_t cv;
     pthread_cond_init(&cv, NULL);
+    
 Signal Variable
 
     pthread_cond_signal(&cv);
+    
 Broadcasting Variable
 
     pthread_cond_broadcast(&cv);

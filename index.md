@@ -94,7 +94,7 @@ Create file set of type `fd_set`, and timeout var of type `struct timeval`
 
 the [select](https://linux.die.net/man/3/select) call returns the number of file pointers who have pending data, or < 0 if an error occured. After the call `FD_ISSET(int filedescriptor, fd_set * fileset)`can be used on the set, if this returns a non-zero value, this file descriptor has been modified.
 
- ## Message Queues
+## Message Queues
 ### System V
 See Ex. 4 A3 for implementation example.  
 Libraries: sys/types.h, sys/ipc.h, sys/msg.h  

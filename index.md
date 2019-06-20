@@ -1,18 +1,18 @@
 
 # Processes
-**[Fork](https://linux.die.net/man/3/fork)**
-Library: unistd.h
-Syntax: fork();
+**[Fork](https://linux.die.net/man/3/fork)**  
+Library: unistd.h  
+Syntax: fork();  
 
-Returns 0 if the process is the child process
-Returns the PID of the child if the process is the parent
+Returns 0 if the process is the child process  
+Returns the PID of the child if the process is the parent  
 
 
-**[Wait](https://linux.die.net/man/3/wait)**
-Library: sys/wait.h
-Syntax: wait(NULL);
+**[Wait](https://linux.die.net/man/3/wait)**  
+Library: sys/wait.h  
+Syntax: wait(NULL);  
 
-With argument NULL, waits for all child processes to exit.
+With argument NULL, waits for all child processes to exit.  
 
 **[Exit](https://linux.die.net/man/3/exit)**  
 Library: stdlib.h  

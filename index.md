@@ -150,8 +150,9 @@ Attach Shared Memory Segment to variable:
 Get existing Shared Memory Segment ID (Attach the same way):  
 
     int shmid = shmget(ftok("keyfile", SHMKEY), SHMSZ, 0666);
+
 ### POSIX
-Libraries: sys/mman.h, sys/stat.h, fnctl.h **and** linked with -lrt
+Libraries: sys/mman.h, sys/stat.h, fnctl.h **and** linked with -lrt  
 Create Shared Memory Segment  
 
     int shmid = shm_open("posixshared", O_CREAT | O_RDWR, 0666);

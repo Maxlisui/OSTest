@@ -326,6 +326,10 @@ Rules for using condition variables:
  - cond_broadcast sends a signal to all blocked threads
  - signal and broadcast **are NOT persistent**, if no thread picks up the signal at the time, the signal is **lost**.
 
+
+ hallo i
+ bims
+
 ## Atomic Variables
 Defining atomic Variables in C11
 ```

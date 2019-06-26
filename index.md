@@ -215,10 +215,15 @@ Getting an existing Semaphore (Increasing / Decreasing the same way):
 ### POSIX 
 Libraries: semaphore.h **and** linked with -pthread  
 
-Creating and initializing semaphore:  
-
+Creating semaphore:  
     sem_t sema;
+
+Initializing semaphore:
     sem_init(&sema, 1, 1);
+
+Or when using IPC
+    sem_open(<Semname>, O_CREAT | O_RDWR, 0666, 1);
+
 Increasing and decreasing semaphore:  
 
      sem_wait(&sema); //Decrease Semaphore
